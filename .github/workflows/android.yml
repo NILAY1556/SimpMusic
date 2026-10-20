@@ -60,10 +60,11 @@ jobs:
       - name: Generate aboutLibraries.json
         run: ./gradlew exportLibraryDefinitions
 
-      - name: Build release APK
-        run: ./gradlew androidApp:assembleRelease
+      - name: Build APKs
+        run: ./gradlew androidApp:assembleDebug androidApp:assembleRelease
 
       - name: Check build-tools version
+        if: ${{ secrets.SIGNING_KEY != '' }}
         shell: bash
         run: |
           BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
@@ -71,6 +72,7 @@ jobs:
           echo Last build tool version is: $BUILD_TOOL_VERSION
 
       - uses: kevin-david/zipalign-sign-android-release@v2
+        if: ${{ secrets.SIGNING_KEY != '' }}
         id: sign_app
         with:
           releaseDirectory: androidApp/build/outputs/apk/release
@@ -86,8 +88,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: androidApp/build/outputs/apk/release/*-signed.apk
-
+          path: |
+            androidApp/build/outputs/apk/debug/*.apk
+            androidApp/build/outputs/apk/release/*.apk
   # SimpMusic for vivo (vivoAndroidApp, com.spotify.music), same Full build as above.
   build-vivo:
     runs-on: ubuntu-latest
