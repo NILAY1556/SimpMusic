@@ -16,4 +16,6 @@
     <string name="widget_insights_top_songs">Top songs · 30 days</string>
     <string name="widget_insights_top_artists">Top artists · 30 days</string>
     <string name="widget_recently_added">Recently added</string>
+    <string name="widget_aesthetic_player_label">Aesthetic Player</string>
+    <string name="widget_aesthetic_player_description">Clean, modern music player with album artwork, progress bar, and playback controls.</string>
 </resources>
