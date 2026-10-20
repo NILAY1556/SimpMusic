@@ -11,6 +11,7 @@ import com.maxrave.domain.data.model.mood.Mood
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.HomeRepository
+import com.maxrave.domain.repository.OfflineDashboardRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
@@ -37,7 +38,11 @@ import simpmusic.composeapp.generated.resources.view_count
 class HomeViewModel(
     private val dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
+    private val offlineDashboardRepository: OfflineDashboardRepository,
 ) : BaseViewModel() {
+    val offlineShelves: StateFlow<List<HomeItem>> =
+        offlineDashboardRepository.getOfflineHomeShelves()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
     val homeItemList: StateFlow<List<HomeItem>> = _homeItemList

@@ -141,6 +141,7 @@ import com.maxrave.simpmusic.ui.component.LocalNowPlayingOpen
 import com.maxrave.simpmusic.ui.component.LocalUserStarted
 import com.maxrave.simpmusic.ui.component.MoodMomentAndGenreHomeItem
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.OfflineDashboardHeader
 import com.maxrave.simpmusic.ui.component.OfflineErrorState
 import com.maxrave.simpmusic.ui.component.PromoBanner
 import com.maxrave.simpmusic.ui.component.PromoBannerData
@@ -274,6 +275,7 @@ fun HomeScreen(
     val isScrollingUp by scrollState.isScrollingUp()
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
+    val offlineShelves by viewModel.offlineShelves.collectAsStateWithLifecycle()
     // Any shelf YouTube heads with the listener's own avatar over its title (Listen again is one of
     // several). Home's header already shows the avatar, so those shelves drop it and keep their name
     // and title. Matched on the name rather than on any shelf title, the way the old Welcome back row did.
@@ -762,6 +764,49 @@ fun HomeScreen(
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
                     if (homeData.isEmpty()) {
+                        if (offlineShelves.isNotEmpty()) {
+                            LazyColumn(
+                                state = scrollState,
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                item {
+                                    Spacer(
+                                        Modifier.height(
+                                            with(LocalDensity.current) { topAppBarHeightPx.toDp() },
+                                        ),
+                                    )
+                                    OfflineDashboardHeader(onRetry = onRefresh)
+                                }
+                                itemsIndexed(offlineShelves, key = { _, item -> "offline_" + item.title }) { _, item ->
+                                    Box(
+                                        modifier = Modifier.padding(horizontal = 15.dp),
+                                    ) {
+                                        if (item.title == stringResource(Res.string.quick_picks) || item.title.equals("Quick Picks", ignoreCase = true)) {
+                                            QuickPicks(
+                                                homeItem = item,
+                                                navController = navController,
+                                                viewModel = viewModel,
+                                            )
+                                        } else if (item.isSongCardShelf()) {
+                                            HomeDiscoverSection(
+                                                data = item,
+                                                navController = navController,
+                                                homeViewModel = viewModel,
+                                            )
+                                        } else {
+                                            HomeItem(
+                                                navController = navController,
+                                                data = item,
+                                            )
+                                        }
+                                    }
+                                }
+                                item {
+                                    EndOfPage()
+                                }
+                            }
+                            return@Crossfade
+                        }
                         OfflineErrorState(
                             onRetry = onRefresh,
                             onOpenDownloaded = {
