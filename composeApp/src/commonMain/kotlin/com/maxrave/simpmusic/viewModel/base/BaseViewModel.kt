@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.common.Config
 import com.maxrave.domain.data.model.browse.album.Track
+import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.streams.YouTubeWatchEndpoint
 import com.maxrave.domain.mediaservice.handler.MediaPlayerHandler
 import com.maxrave.domain.mediaservice.handler.PlaylistType
 import com.maxrave.domain.mediaservice.handler.QueueData
+import com.maxrave.domain.repository.OfflineRadioRepository
 import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.domain.utils.isRadioQueueId
+import com.maxrave.domain.utils.toTrack
 import com.maxrave.logger.LogLevel
 import com.maxrave.logger.Logger
 import kotlinx.coroutines.cancel
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import multiplatform.network.cmptoast.ToastDuration
@@ -142,7 +146,7 @@ abstract class BaseViewModel :
     }
 
     private val playbackSongRepository: SongRepository by inject<SongRepository>()
-
+    private val offlineRadioRepository: OfflineRadioRepository by inject<OfflineRadioRepository>()
     /**
      * Plays what a YouTube play button points at, as the queue `/next` returns for it: a song's
      * radio (an `RD…` id), or a playlist, an album, a shelf's "Play all" as a plain list. Used by
@@ -172,6 +176,32 @@ abstract class BaseViewModel :
                     makeToast(res.message ?: getString(Res.string.error))
                 }
             }
+        }
+    }
+
+    fun playOfflineMix(content: Content) {
+        viewModelScope.launch {
+            val seedVideoId = content.videoId ?: content.playEndpoint?.videoId
+            val pool = playbackSongRepository.getDownloadedSongs().firstOrNull().orEmpty()
+            val seedSong = pool.find { it.videoId == seedVideoId } ?: pool.firstOrNull() ?: return@launch
+            val seedTrack = seedSong.toTrack()
+            val queueTracks = offlineRadioRepository.buildOfflineQueue(
+                seedTrack = seedTrack,
+                excludeVideoIds = emptySet(),
+                limit = 25,
+            )
+            val fullList = arrayListOf(seedTrack).apply { addAll(queueTracks.filter { it.videoId != seedTrack.videoId }) }
+            setQueueData(
+                QueueData.Data(
+                    listTracks = fullList,
+                    firstPlayedTrack = seedTrack,
+                    playlistId = content.playlistId ?: "offline_mix_supermix",
+                    playlistName = content.title,
+                    playlistType = PlaylistType.RADIO,
+                    continuation = null,
+                ),
+            )
+            loadMediaItem(seedTrack, Config.RADIO_CLICK, 0)
         }
     }
 }

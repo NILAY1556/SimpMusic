@@ -112,6 +112,7 @@ import com.maxrave.simpmusic.getPlatform
 import com.maxrave.simpmusic.ui.navigation.destination.list.AlbumDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.ArtistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.BrowseDestination
+import com.maxrave.simpmusic.ui.navigation.destination.list.LocalPlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PlaylistDestination
 import com.maxrave.simpmusic.ui.navigation.destination.list.PodcastDestination
 import com.maxrave.simpmusic.ui.icon.PlayArrow
@@ -334,6 +335,26 @@ fun HomeContentCard(
                     ),
                 )
             }, data = temp, fillMaxWidth = fillMaxWidth)
+        } else if (playlistId.startsWith("offline_mix_")) {
+            HomeItemContentPlaylist(
+                onClick = { viewModel.playOfflineMix(temp) },
+                data = temp,
+                fillMaxWidth = fillMaxWidth,
+                onPlay = { viewModel.playOfflineMix(temp) },
+            )
+        } else if (playlistId.toLongOrNull() != null) {
+            HomeItemContentPlaylist(
+                onClick = {
+                    navController.navigate(
+                        LocalPlaylistDestination(
+                            id = playlistId.toLong(),
+                        ),
+                    )
+                },
+                data = temp,
+                fillMaxWidth = fillMaxWidth,
+                onPlay = temp.hoverPlay(viewModel),
+            )
         } else {
             HomeItemContentPlaylist(onClick = {
                 navController.navigate(
