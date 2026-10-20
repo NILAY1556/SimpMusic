@@ -26,15 +26,19 @@ import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.ui.icon.CloudOff
 import com.maxrave.simpmusic.ui.icon.RestartAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
+import com.maxrave.simpmusic.ui.icon.Wifi
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.stringResource
 import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.offline_mode
 import simpmusic.composeapp.generated.resources.retry
+import simpmusic.composeapp.generated.resources.go_online
 
 @Composable
 fun OfflineDashboardHeader(
     onRetry: () -> Unit,
+    isManual: Boolean = false,
+    onGoOnline: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -78,23 +82,44 @@ fun OfflineDashboardHeader(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            FilledTonalButton(
-                onClick = onRetry,
-                shape = CircleShape,
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-            ) {
-                Icon(
-                    imageVector = SimpIcons.RestartAlt,
-                    contentDescription = stringResource(Res.string.retry),
-                    modifier = Modifier.size(16.dp),
-                    tint = LocalContentColor.current,
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(Res.string.retry),
-                    style = typo().labelMedium,
-                    color = LocalContentColor.current,
-                )
+            if (isManual && onGoOnline != null) {
+                FilledTonalButton(
+                    onClick = onGoOnline,
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                ) {
+                    Icon(
+                        imageVector = SimpIcons.Wifi,
+                        contentDescription = stringResource(Res.string.go_online),
+                        modifier = Modifier.size(16.dp),
+                        tint = LocalContentColor.current,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.go_online),
+                        style = typo().labelMedium,
+                        color = LocalContentColor.current,
+                    )
+                }
+            } else {
+                FilledTonalButton(
+                    onClick = onRetry,
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                ) {
+                    Icon(
+                        imageVector = SimpIcons.RestartAlt,
+                        contentDescription = stringResource(Res.string.retry),
+                        modifier = Modifier.size(16.dp),
+                        tint = LocalContentColor.current,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.retry),
+                        style = typo().labelMedium,
+                        color = LocalContentColor.current,
+                    )
+                }
             }
         }
     }

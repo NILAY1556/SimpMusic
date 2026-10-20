@@ -276,6 +276,7 @@ fun HomeScreen(
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val homeData by viewModel.homeItemList.collectAsStateWithLifecycle()
     val offlineShelves by viewModel.offlineShelves.collectAsStateWithLifecycle()
+    val offlineModeEnabled by viewModel.offlineModeEnabled.collectAsStateWithLifecycle()
     // Any shelf YouTube heads with the listener's own avatar over its title (Listen again is one of
     // several). Home's header already shows the avatar, so those shelves drop it and keep their name
     // and title. Matched on the name rather than on any shelf title, the way the old Welcome back row did.
@@ -763,7 +764,7 @@ fun HomeScreen(
         ) {
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
-                    if (homeData.isEmpty()) {
+                    if (homeData.isEmpty() || offlineModeEnabled) {
                         if (offlineShelves.isNotEmpty()) {
                             LazyColumn(
                                 state = scrollState,
@@ -775,7 +776,11 @@ fun HomeScreen(
                                             with(LocalDensity.current) { topAppBarHeightPx.toDp() },
                                         ),
                                     )
-                                    OfflineDashboardHeader(onRetry = onRefresh)
+                                    OfflineDashboardHeader(
+                                        onRetry = onRefresh,
+                                        isManual = offlineModeEnabled,
+                                        onGoOnline = { viewModel.setOfflineModeEnabled(false) },
+                                    )
                                 }
                                 itemsIndexed(offlineShelves, key = { _, item -> "offline_" + item.title }) { _, item ->
                                     Box(

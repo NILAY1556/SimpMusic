@@ -361,6 +361,8 @@ import simpmusic.composeapp.generated.resources.now_playing_style_apple_music
 import simpmusic.composeapp.generated.resources.now_playing_style_m3_expressive
 import simpmusic.composeapp.generated.resources.now_playing_style_spotify
 import simpmusic.composeapp.generated.resources.ok
+import simpmusic.composeapp.generated.resources.offline_mode
+import simpmusic.composeapp.generated.resources.offline_mode_description
 import simpmusic.composeapp.generated.resources.open_system_equalizer
 import simpmusic.composeapp.generated.resources.openai
 import simpmusic.composeapp.generated.resources.openai_api_compatible
@@ -959,6 +961,12 @@ fun SettingScreen(
         }
         item(key = "content") {
             SettingGroup(title = stringResource(Res.string.content)) {
+                val offlineModeEnabled by viewModel.offlineModeEnabled.collectAsStateWithLifecycle()
+                SettingItem(
+                    title = stringResource(Res.string.offline_mode),
+                    subtitle = stringResource(Res.string.offline_mode_description),
+                    switch = (offlineModeEnabled to { viewModel.setOfflineModeEnabled(it) }),
+                )
                 SettingItem(
                     title = stringResource(Res.string.youtube_account),
                     subtitle = stringResource(Res.string.manage_your_youtube_accounts),

@@ -44,6 +44,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
@@ -247,6 +250,10 @@ class SettingsViewModel(
 
     private val _autoBackupLastTime = MutableStateFlow<Long>(0L)
     val autoBackupLastTime: StateFlow<Long> = _autoBackupLastTime
+
+    val offlineModeEnabled: StateFlow<Boolean> = dataStoreManager.offlineMode
+        .map { it == DataStoreManager.TRUE }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -761,6 +768,12 @@ class SettingsViewModel(
             dataStoreManager.autoBackupLastTime.collect { time ->
                 _autoBackupLastTime.value = time
             }
+        }
+    }
+
+    fun setOfflineModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setOfflineMode(enabled)
         }
     }
 

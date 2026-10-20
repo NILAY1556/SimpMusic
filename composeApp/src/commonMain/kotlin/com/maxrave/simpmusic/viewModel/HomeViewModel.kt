@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -43,6 +44,18 @@ class HomeViewModel(
     val offlineShelves: StateFlow<List<HomeItem>> =
         offlineDashboardRepository.getOfflineHomeShelves()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val offlineModeEnabled: StateFlow<Boolean> = dataStoreManager.offlineMode
+        .map { it == DataStoreManager.TRUE }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun setOfflineModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setOfflineMode(enabled)
+            if (!enabled) {
+                getHomeItemList()
+            }
+        }
+    }
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
     val homeItemList: StateFlow<List<HomeItem>> = _homeItemList
